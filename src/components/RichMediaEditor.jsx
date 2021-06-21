@@ -1,9 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { Editor, EditorState, convertToRaw, AtomicBlockUtils, RichUtils } from 'draft-js';
 import '../../node_modules/draft-js/dist/Draft.css';
-import { Upload, Button, Modal } from 'antd';
+import { Upload, Button, Modal, Input } from 'antd';
 
 const RichMediaEditor = () => {
+	const [visible, setVisible] = useState(false);
+	const [confirmLoading, setConfirmLoading] = useState(false);
+	const [modalText, setModalText] = React.useState('Content of the modal');
+	const [fileList, setFileList] = useState([]);
 	const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
 	const [showURLInput, setShowURLInput] = useState(false);
 	const [url, setUrl] = useState('');
@@ -52,6 +56,13 @@ const RichMediaEditor = () => {
 		(() => {
 			setTimeout(() => focus(), 0);
 		})();
+
+		setModalText('The modal will be closed after two seconds');
+		setConfirmLoading(true);
+		setTimeout(() => {
+			setVisible(false);
+			setConfirmLoading(false);
+		}, 2000);
 	};
 
 	const onURLInputKeyDown = (e) => {
@@ -80,11 +91,29 @@ const RichMediaEditor = () => {
 		promptForMedia('video');
 	};
 
+	const showModal = () => {
+		setVisible(true);
+	};
+
+	const handleOk = () => {
+		setModalText('The modal will be closed after two seconds');
+		setConfirmLoading(true);
+		setTimeout(() => {
+			setVisible(false);
+			setConfirmLoading(false);
+		}, 2000);
+	};
+
+	const handleCancel = () => {
+		console.log('Clicked cancel button');
+		setVisible(false);
+	};
+
 	let urlInput;
 	if (showURLInput) {
 		urlInput = (
 			<div style={styles.urlInputContainer}>
-				<input
+				<Input
 					onChange={onURLChange}
 					ref={(el) => (inputRef.current['url'] = el)}
 					style={styles.urlInput}
@@ -92,7 +121,7 @@ const RichMediaEditor = () => {
 					value={urlValue}
 					onKeyDown={onURLInputKeyDown}
 				/>
-				<button onMouseDown={confirmMedia}>Confirm</button>
+				<Button onMouseDown={confirmMedia}>Confirm</Button>
 			</div>
 		);
 	}
@@ -109,19 +138,27 @@ const RichMediaEditor = () => {
 				</ul>
 			</div>
 			<div style={styles.buttons}>
-				<button onMouseDown={addAudio} style={{ marginRight: 10 }}>
+				<Button onMouseDown={addAudio} style={{ marginRight: 10 }}>
 					Add Audio
-				</button>
-				<Upload>
-					<Button onMouseDown={addImage} style={{ marginRight: 10 }}>
-						Add Image
-					</Button>
-				</Upload>
-				<button onMouseDown={addVideo} style={{ marginRight: 10 }}>
+				</Button>
+
+				<Button onMouseDown={addImage} onClick={showModal} style={{ marginRight: 10 }}>
+					Add Image
+				</Button>
+
+				<Button onMouseDown={addVideo} style={{ marginRight: 10 }}>
 					Add Video
-				</button>
+				</Button>
 			</div>
-			{urlInput}
+			<Modal
+				title='Upload Image'
+				visible={visible}
+				onOk={confirmMedia}
+				confirmLoading={confirmLoading}
+				onCancel={handleCancel}>
+				<p>Enter the image url below</p>
+				{urlInput}
+			</Modal>
 			<div style={styles.editor}>
 				<Editor
 					blockRendererFn={mediaBlockRenderer}
