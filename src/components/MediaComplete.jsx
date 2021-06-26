@@ -4,14 +4,15 @@ import '../../node_modules/draft-js/dist/Draft.css';
 import { Upload, Button, Modal, Input, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 
-const MediaUploadEditor = () => {
+const MediaComplete = () => {
 	const [visible, setVisible] = useState(false);
 	const [confirmLoading, setConfirmLoading] = useState(false);
 
 	const [fileList, setFileList] = useState([]);
 	const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
-	const [urlType, setUrlType] = useState('');
+  const [showURLinput, setShowURLInput] = useState(false)
 	const [urlValue, setUrlValue] = useState('');
+	const [urlType, setUrlType] = useState('');
 	const [uploading, setUploading] = useState(false);
 
 	const imageRef = useRef({});
@@ -22,6 +23,8 @@ const MediaUploadEditor = () => {
 
 	const onChange = (editorState) => setEditorState(editorState);
 
+  const onURLChange = (e) => setUrlValue(e.target.value)
+
 	const getBase64 = (file) => {
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader();
@@ -31,6 +34,7 @@ const MediaUploadEditor = () => {
 		});
 	};
 
+  // Upload 
 	const confirmMedia = (e) => {
 		e.preventDefault();
 
@@ -42,7 +46,7 @@ const MediaUploadEditor = () => {
 		// The third parameter here is a space string, not an empty string
 		// If you set an empty string, you will get an error: Unknown DraftEntity key: null
 		setEditorState(AtomicBlockUtils.insertAtomicBlock(newEditorState, entityKey, ' '));
-		// setShowURLInput(false);
+
 		setFileList([]);
 
 		(() => {
@@ -55,6 +59,47 @@ const MediaUploadEditor = () => {
 			setConfirmLoading(false);
 		}, 0);
 	};
+
+  // URL
+  const confirmURL = (e) => {
+    e.preventDefault();
+    const contentState = editorState.getCurrentContent();
+    const contentStateWithEntity = contentState.createEntity(urlType, 'IMMUTABLE', {src: urlValue})
+    const entityKey = contentStateWithEntity.getLastCreatedEntityKey();
+    const newEditorState = EditorState.set(editorState, {currentContent: contentStateWithEntity})
+
+    // The third parameter here is a space string, not an empty string
+		// If you set an empty string, you will get an error: Unknown DraftEntity key: null
+		setEditorState(AtomicBlockUtils.insertAtomicBlock(newEditorState, entityKey, ' '));
+		setShowURLInput(false);
+		setUrlValue('');
+
+    (() => {
+      setTimeout(() => focus(), 0)
+    })()
+  }
+
+  const onURLInputKeyDown = (e) => {
+    if(e.which === 13) {
+      confirmMedia(e)
+    }
+  }
+
+	const promptForUrl = (type) => {
+		setShowURLInput(true);
+		setUrlValue('')
+		setUrlType(type)
+
+		setTimeout(() => imageRef.current['url'].focus(), 0)
+	}
+
+	const addImageUrl = () => {
+		promptForUrl('image')
+	}
+
+	const addVideoUrl = () => {
+		promptForUrl('video')
+	}
 
 	const showModal = () => {
 		setVisible(true);
@@ -73,8 +118,6 @@ const MediaUploadEditor = () => {
 				file[0].preview = await getBase64(file[0].originFileObj);
 			}
 			setFileList(file[0].preview);
-
-			return false;
 		},
 		fileList,
 	};
@@ -109,6 +152,7 @@ const MediaUploadEditor = () => {
 
 			return true;
 		}
+
 		return false;
 	};
 
@@ -224,4 +268,4 @@ const styles = {
 	},
 };
 
-export default MediaUploadEditor;
+export default MediaComplete;

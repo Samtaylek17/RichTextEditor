@@ -1,4 +1,5 @@
 import './App.css';
+import MediaComplete from './components/MediaComplete';
 import MediaEditor from './components/MediaEditor';
 import MediaUploadEditor from './components/MediaUploadEditor';
 import RichMediaEditor from './components/RichMediaEditor';
@@ -12,7 +13,8 @@ function App() {
 
 			<RichMediaEditor />
 			<br></br>
-			<MediaUploadEditor />
+			{/* <MediaUploadEditor /> */}
+			<MediaComplete />
 		</div>
 	);
 }
